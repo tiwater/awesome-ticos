@@ -226,7 +226,7 @@ mqtt event: id = 3
 
 ## 参考代码
 
-  - [01_HelloWold](./01_HelloWold/project)下是本示例的完整参考代码。
+  - [01_HelloWorld](./01_HelloWorld/project)下是本示例的完整参考代码。
 
 
 ## ESP-IDF 开发
