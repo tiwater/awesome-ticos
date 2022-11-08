@@ -4,8 +4,8 @@
 #define TICOS_HEARTBEAT_MILLIS 250
 
 #include <ticos_framework.h>
-#include <ticos/device/gpio.h>
 #include "ticos_iot.h"
+#include <ticos/device/gpio.h>
 
 /* 请填充测试所需的 WiFi ssid */
 #define _SSID ""
@@ -33,7 +33,6 @@ TICOS_BUS_ID_END
 TICOS_DEV_ID_BEGIN
     DEV_IOT,
     DEV_IO0,
-    DEV_IO23,
     // TODO 更多设备标识号
 TICOS_DEV_ID_END
 
@@ -41,46 +40,21 @@ TICOS_DEV_ID_END
  * 生命周期函数，负责系统启动后的自定义初始化工作
  ************************************************************************/
 int ticos_onboot(void) {
-    TICOS_DEV_ADD(DEV_IOT, ticos_iot, .ssid=_SSID, .pswd=_PSWD, .fqdn=_FQDN, .product_id=_PRD_ID, .device_id=_DEV_ID, .secret_key=_SKEY);
-    TICOS_DEV_ADD(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT);
-    TICOS_DEV_ADD(DEV_IO23, ticos_gpio, .pin=23, .mode=TICOS_GPIO_MODE_OUTPUT);
+    TICOS_DEV(DEV_IOT, ticos_iot, .ssid=_SSID, .pswd=_PSWD, .fqdn=_FQDN,
+            .product_id=_PRD_ID, .device_id=_DEV_ID, .secret_key=_SKEY);
+    TICOS_DEV(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT);
     return TICOS_OK;
 }
-static bool g_light_on;
 
-static void set_light(bool on) {
-    // 获得物模型接口
-    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
-    // 设置属性值以同步至云端
-    ticos_set(iot, prop_led, on);
-
-    // 设置 LED 物理状态
-    ticos_dev_setval(DEV_IO23, ticos_gpio, level, on);
-
-    // 记录当前 LED 状态
-    g_light_on = on;
-}
-
-static inline void switch_light(void) {
-    set_light(!g_light_on);
-}
 /************************************************************************
  * 生命周期函数，按照一定时间间隔(TICOS_HEARTBEAT_MILLIS)触发
  ************************************************************************/
 int ticos_onloop(void) {
+    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
     ticos_gpio_t* io_0 = ticos_dev(DEV_IO0, ticos_gpio);
     if (ticos_isdirty(io_0, level)) {
-        // GPIO23 被释放
-        if (!ticos_get(io_0, level)) {
-            switch_light();
-        }
-    }
-    
-    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
-    if (ticos_isdirty(iot, prop_led)) {
-        // led 属性有改变
-        bool on = ticos_get(iot, prop_led);
-        set_light(on);
+        // 按键被按动，将按键物理状态传入物模型
+        ticos_set(iot, tele_switch, ticos_get(io_0, level));
     }
     return TICOS_OK;
 }

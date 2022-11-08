@@ -136,7 +136,7 @@ static inline void switch_light(void) {
   ```
     ticos_gpio_t* io_0 = ticos_dev(DEV_IO0, ticos_gpio);
     if (ticos_isdirty(io_0, level)) {
-        // GPIO23 被释放
+        // GPIO0 被释放
         if (!ticos_get(io_0, level)) {
             switch_light();
         }
@@ -237,4 +237,4 @@ mqtt event: id = 3
    ![下载](raw/16.png)
 
   2. 参考前述 Arduino 版本的功能开发过程，对下载的代码包中的 `project/main/project.c` 进行修改，完成代码编写；
-  3. 在 project 目录下利用 ESP-IDF 进行常规项目编译和烧录，细节信息可进一步参考改目录下的 README.md 文档。
+  3. 在 project 目录下利用 ESP-IDF 进行常规项目编译和烧录，细节信息可进一步参考该目录下的 README.md 文档。
