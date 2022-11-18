@@ -76,37 +76,35 @@
 
   - 本开发板的 BOOT 键是 GPIO0, LED 连接到 GPIO23。如果你采用了不同的开发板或不同的配置，请根据你的实际配置对代码进行相应的调整；
   - 添加外设配置，详细说明请参考[文档]()：
-  在
+  打开项目中的 ticos_config.h 文件，在
+  ```
+TICOS_DEV_BEGIN
+...
+TICOS_DEV_END
+  ```
+中增加项目中会用到的 GPIO 配置。完成后应该如下所示：
   ```
 TICOS_DEV_ID_BEGIN
-    DEV_IOT,
+    TICOS_DEV(DEV_IOT, ticos_iot,
+            .ssid = "SSID",
+            .pswd = "PASSWORD",
+            .fqdn = "//hub.ticos.cn",
+            .product_id = "PRODUCT ID",
+            .device_id  = "DEVICE ID",
+            .secret_key = "SECRET KEY")
     // TODO 更多设备标识号
+    TICOS_DEV(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT)
+    TICOS_DEV(DEV_IO23, ticos_gpio, .pin=23, .mode=TICOS_GPIO_MODE_OUTPUT)
 TICOS_DEV_ID_END
-  ```
-中增加项目中会用到的 GPIO 标识，如下所示：
-  ```
-TICOS_DEV_ID_BEGIN
-    DEV_IOT,
-    DEV_IO0,
-    DEV_IO23,
-    // TODO 更多设备标识号
-TICOS_DEV_ID_END
-  ```
-之后在 `ticos_onboot()` 中添加代码，以在初始化过程中注册外设，如下所示：
-  ```
-int ticos_onboot(void) {
-    TICOS_DEV_ADD(DEV_IOT, ticos_iot, .ssid=_SSID, .pswd=_PSWD, .fqdn=_FQDN,
-                .product_id=_PRD_ID, .device_id=_DEV_ID, .secret_key=_SKEY);
-    TICOS_DEV_ADD(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT);
-    TICOS_DEV_ADD(DEV_IO23, ticos_gpio, .pin=23, .mode=TICOS_GPIO_MODE_OUTPUT);
-    return TICOS_OK;
-}
   ```
 从中可以看出 GPIO0 被注册为输入端口，即我们的控制开关；GPIO23 被注册为输出端口，以驱动 LED 的亮灭。
-  - 因为我们需要支持 gpio，也让我们在 project.ino 文件头部加入相关的头文件引用：
-```#include <ticos/device/gpio.h>```
 
-  - 提供外设驱动函数：
+	- 为了支持 GPIO 的功能，还需要在 ticos_config.h 开始引入相关的头文件：
+	```
+	#include <ticos/device/gpio.h>
+	```
+
+  - 之后，让我们在 ticos_project.ino 文件中提供外设驱动函数：
   首先定义一个变量以记录 LED 状态：
   ```
 static bool g_light_on;
@@ -115,12 +113,12 @@ static bool g_light_on;
   ```
 static void set_light(bool on) {
     // 获得物模型接口
-    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
+    ticos_iot_t* iot = ticos_dev(DEV_IOT);
     // 设置属性值以同步至云端
     ticos_set(iot, prop_led, on);
 
     // 设置 LED 物理状态
-    ticos_dev_setval(DEV_IO23, ticos_gpio, level, on);
+    ticos_dev_setval(DEV_IO23, level, on);
 
     // 记录当前 LED 状态
     g_light_on = on;
@@ -134,7 +132,7 @@ static inline void switch_light(void) {
   ```
   最后，在 `ticos_onloop()` 主循环中，我们监听按键状态以切换 LED 的状态：
   ```
-    ticos_gpio_t* io_0 = ticos_dev(DEV_IO0, ticos_gpio);
+    ticos_gpio_t* io_0 = ticos_dev(DEV_IO0);
     if (ticos_isdirty(io_0, level)) {
         // GPIO0 被释放
         if (!ticos_get(io_0, level)) {
@@ -144,7 +142,7 @@ static inline void switch_light(void) {
   ```
   以及监听物模型 led 属性的变化，以相应设置 LED 开关：
   ```
-    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
+    ticos_iot_t* iot = ticos_dev(DEV_IOT);
     if (ticos_isdirty(iot, prop_led)) {
         // led 属性有改变
         bool on = ticos_get(iot, prop_led);
@@ -163,12 +161,12 @@ static inline void switch_light(void) {
 
    ![创建设备](raw/9.png)
 
-  - 确认创建设备后，从设备列表中选择`详情`，进入设备详情页面，将其中的产品 ID、设备 ID、设备密钥分别拷贝到 project.ino 文件开头的 _PRD_ID、_DEV_ID 和 _SKEY 宏定义中，这样，将编译后的固件烧录到 ESP32 开发板上，其身份就是我们刚才从设备管理菜单中创建的这台设备。
+  - 确认创建设备后，从设备列表中选择`详情`，进入设备详情页面，将其中的产品 ID、设备 ID、设备密钥分别拷贝到 ticos_config.h 文件中的 product_id、device_id 和 secret_key 属性值中，这样，将编译后的固件烧录到 ESP32 开发板上，其身份就是我们刚才从设备管理菜单中创建的这台设备。
    ![设备详情](raw/10.png)
 
 ## 网络配置
 
-  - 将你所在环境的 Wifi 名称和密码填入project.ino 文件开头的 _SSID 和 _PSWD 宏定义中。
+  - 将你所在环境的 Wifi 名称和密码填入 ticos_config.h 的 ssid 和 pswd 宏定义中。
 
 ## 烧录固件
 
@@ -226,7 +224,7 @@ mqtt event: id = 3
 
 ## 参考代码
 
-  - [01_HelloWorld](./01_HelloWorld/project)下是本示例的完整参考代码。
+  - [01_HelloWorld](./01_HelloWorld/ticos_project)下是本示例的完整参考代码。
 
 
 ## ESP-IDF 开发
@@ -236,5 +234,5 @@ mqtt event: id = 3
 
    ![下载](raw/16.png)
 
-  2. 参考前述 Arduino 版本的功能开发过程，对下载的代码包中的 `project/main/project.c` 进行修改，完成代码编写；
+  2. 参考前述 Arduino 版本的功能开发过程，对下载的代码包中的 `project/main/ticos_project.c`, `ticos_config.h` 进行修改，完成代码编写；
   3. 在 project 目录下利用 ESP-IDF 进行常规项目编译和烧录，细节信息可进一步参考该目录下的 README.md 文档。

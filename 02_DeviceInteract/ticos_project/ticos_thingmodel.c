@@ -1,19 +1,18 @@
 /************************************************************************
  * @file ticos_thingmodel.c
  * @brief 物模型接口实现
- * @author
- * @details 此文件为自动生成，请不要更改文件内容
- * @date: 2022-11-06 14:31:56
- * @copyright
+ * @date 2022-11-18 17:50:09
+ * @note 此文件为自动生成，请不要更改文件内容
  ************************************************************************/
 
+#include "ticos_config.h"
 #include "ticos_thingmodel.h"
 #include <ticos_thingmodel_type.h>
-#include <ticos/device_center.h>
-#include "ticos_iot.h"
+
+#define _DEV_ticos_iot DEV_IOT
 
 bool ticos_telemetry_switch_send(void) {
-    ticos_iot_t* iot = ticos_dev(0, ticos_iot);
+    ticos_iot_t* iot = ticos_dev(_DEV_ticos_iot);
     return ticos_cache_get(iot, tele_switch);
 }
 

@@ -19,43 +19,48 @@
 
 ## 功能开发
 
-  和第一课类似，我们首先下载/建立 Arduino 脚手架工程，然后打开 project.ino 文件进行开发。
+  和第一课类似，我们首先下载/建立 Arduino 脚手架工程，然后双击 ticos_project.ino 文件进行开发。
 
   本课期望达到的功能：
   按动今天这块开发板上的 BOOT 键，可以控制我们在第一课中创建的 LED 设备的亮、灭。
 
   - 首先，为按键添加外设配置：
-  在
+  在 ticos_config.h 文件的
   ```
 TICOS_DEV_ID_BEGIN
-    DEV_IOT,
-    // TODO 更多设备标识号
+...
 TICOS_DEV_ID_END
   ```
 中增加项目中会用到的 GPIO 标识，如下所示：
   ```
-TICOS_DEV_ID_BEGIN
-    DEV_IOT,
-    DEV_IO0,
-    // TODO 更多设备标识号
-TICOS_DEV_ID_END
+TICOS_DEV_BEGIN
+    TICOS_DEV(DEV_IOT, ticos_iot,
+             /* 请填充测试所需的 WiFi ssid */
+             .ssid="SSID",
+             /* 请填充测试所需的 WiFi password */
+             .pswd="PSWD",
+             /* 请填充测试所需的 mqtt fqdn */
+             .fqdn="mqtt://hub.ticos.cn",
+             /* 请填充测试所需的 product id */
+             .product_id="PRODUCT ID",
+              /* 请填充测试所需的 device id */
+             .device_id="DEVICE ID",
+             /* 请填充测试所需的 security key */
+             .secret_key="SECRET KEY")
+    // TODO 注册更多设备
+		TICOS_DEV(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT)
+TICOS_DEV_END
   ```
-之后在 `ticos_onboot()` 中添加代码，以在初始化过程中注册外设，如下所示：
-  ```
-int ticos_onboot(void) {
-    TICOS_DEV_ADD(DEV_IOT, ticos_iot, .ssid=_SSID, .pswd=_PSWD, .fqdn=_FQDN,
-                .product_id=_PRD_ID, .device_id=_DEV_ID, .secret_key=_SKEY);
-    TICOS_DEV_ADD(DEV_IO0, ticos_gpio, .pin=0, .mode=TICOS_GPIO_MODE_INPUT);
-    return TICOS_OK;
-}
-  ```
-  - 在 project.ino 文件头部加入相关的头文件引用：
-```#include <ticos/device/gpio.h>```
 
-  - 在 `ticos_onloop()` 主循环中，监听按键状态并通过物模型将状态同步至云端：
+在 ticos_config.h 开始引入相关的头文件：
+	```
+	#include <ticos/device/gpio.h>
+	```
+
+  - 在 ticos_project.ino 文件的 `ticos_onloop()` 主循环中，监听按键状态并通过物模型将状态同步至云端：
   ```
-    ticos_iot_t* iot = ticos_dev(DEV_IOT, ticos_iot);
-    ticos_gpio_t* io_0 = ticos_dev(DEV_IO0, ticos_gpio);
+    ticos_iot_t* iot = ticos_dev(DEV_IOT);
+    ticos_gpio_t* io_0 = ticos_dev(DEV_IO0);
     if (ticos_isdirty(io_0, level)) {
         // 按键被按动，将按键物理状态传入物模型
         ticos_set(iot, tele_switch, ticos_get(io_0, level));
@@ -111,7 +116,7 @@ return msg;
 
 ## 参考代码
 
-  - [02_DeviceInteract](./02_DeviceInteract/project)下是本示例的完整参考代码。
+  - [02_DeviceInteract](./02_DeviceInteract/ticos_project)下是本示例的完整参考代码。
 
 
 ## ESP-IDF 开发
