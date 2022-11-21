@@ -7,7 +7,7 @@ Ticos-SDK 项目模板 for arduino
      - 在 Arduino IDE 中, 选择菜单 `项目`, `加载库`, `管理库...`。
      - 搜索并安装 `Ticos Framework`。 (当前库还未过审，请参考下面步骤手动安装)
   2. 手动安装
-     - 将本 [Ticos Framework](https://github.com/tiwater/ticos) 克隆至 Arduino 库目录，通常该目录在 ～/Documents/Arduino/libraries，请根据你的开发平台中 Arduino IDE 的配置确定。
+     - 将本 [Ticos Framework](https://github.com/tiwater/ticos-framework) 克隆至 Arduino 库目录，通常该目录在 ～/Documents/Arduino/libraries，请根据你的开发平台中 Arduino IDE 的配置确定。
      - 将本 [Ticos SDK](https://github.com/tiwater/ticos-sdk-for-c) 克隆至 Arduino 库目录，通常该目录在 ～/Documents/Arduino/libraries，请根据你的开发平台中 Arduino IDE 的配置确定。
 
 ## 编译 & 运行
