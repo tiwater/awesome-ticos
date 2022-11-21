@@ -12,6 +12,8 @@ Ticos-SDK 项目模板 for arduino
 
 ## 编译 & 运行
 
+以下为使用 arduino-cli 的编译及运行示例，使用 Arduino IDE 的开发者请直接打开项目 .ino 编译即可
+
 ```bash
 $ cd ${您的工程的父目录}
 $ arduino-cli compile --fqbn esp32:esp32:esp32s3 ${本工程名}    # 编译工程，请根据实际版型填写--fqbn参数
